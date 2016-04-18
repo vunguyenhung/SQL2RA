@@ -1,0 +1,8 @@
+WHERE
+No bracket if there’s just one expression
+else there’re bracket each expression
+
+case when “a.any_ref = b.any_ref”, return null
+
+TODO: Fix JOIN Bug
+TODO: Add CSS Class TO Minimize Result
