@@ -23,9 +23,9 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 // FROM TaiSan WHERE MaTaiSan= 'Con Heo'))
 // AND ((TAI_SAN.MaTaiSan=PHAN_PHOI.MaTaiSan) AND (PH.MaPhong=PHAN_PHOI.MaPhong))";
 
-$sql = "SELECT sv.* from SV, Lop
-WHERE sv.malop = lop.malop
-AND tenlop LIKE 'Lop 10A1'";
+// $sql = "SELECT sv.* from SV, Lop
+// WHERE sv.malop = lop.malop
+// AND tenlop LIKE 'Lop 10A1'";
 
 // $sql = "SELECT sv.*
 // FROM SV INNER JOIN LOP ON SV.MALOP = LOP.MALOP
@@ -35,7 +35,7 @@ AND tenlop LIKE 'Lop 10A1'";
 
 // $sql = "SELECT max(Diem), min(Diem), avg(Diem) FROM KETQUATHI WHERE MAMH='CSDL'";
 
-// $sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
+$sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
 
 // $sql = "SELECT COUNT(KETQUA.MAMH)
 // FROM MONHOC, KETQUA
@@ -69,6 +69,17 @@ define("JOIN", "&#10781;"); //⨝
 define("LEFT_JOIN", "&#10197;"); // ⟕
 
 define("RIGHT_JOIN", "&#10198;"); // ⟖
+
+// CSS-HTML CONTENT
+define('FONT_SMALL', 'class="small">');
+
+define('FONT_SMALLER', 'class="smaller">');
+
+define('SPAN_START', '<span ');
+
+define('SPAN_END', '</span>');
+
+//usage: SPAN_START . FONT_SMALL/FONT_SMALLER . CONTENT . SPAN_END;
 
 function showResult($s){
   print_r($s);
@@ -212,7 +223,7 @@ function fromToString($input){
 
 // input: raw[WHERE], must to use recur
 function whereToString($input){
-  if(isSameCofref($input)) return;
+  // if(isSameCofref($input)) return;
   foreach ($input as $key => $value) {
     if(isBracketExpr($value)){
       //sub_tree
@@ -314,25 +325,56 @@ function aggrFuncToString($part, $isLast){
   return $result;
 }
 
+//////
+//$size == 0: FONT_SMALLER
+//$size == 1: FONT_SMALL
+function makeHTML($content,$size = 1){
+  if($size == 1) $fontSize = FONT_SMALL;
+  else $fontSize = FONT_SMALLER;
+  return SPAN_START . $fontSize . $content . SPAN_END;
+}
+
 ///////
 function sqlToString($raw){
   if(isValidInput($raw)){
     foreach ($raw as $key => $val) {
-      if($key == "SELECT")
-        $select = makeSelectSymbol($val).selectToString($val);
-      else if($key == "FROM")
-        $from = "(".fromToString($val).")";
-      else if($key == "WHERE"){
-        $where = whereToString($val);
-        if($where) $where = SIGMA.$where;
+      if($key == "SELECT"){
+        // $select = makeSelectSymbol($val).selectToString($val);
+        $child = selectToString($val);
+        $childContent = makeHTML($child);
+        $symbol = makeSelectSymbol($val);
+        $select = makeHTML($symbol.$childContent);
       }
-      else if($key == "GROUP")
-        $group = groupToString($val);
+      else if($key == "FROM"){
+        // $from = "(".fromToString($val).")";
+        $child = "(".fromToString($val).")";
+        $from = makeHTML($child,0);
+      }
+      else if($key == "WHERE"){
+        // $where = whereToString($val);
+        // if($where) $where = SIGMA.$where;
+        $child = whereToString($val);
+        if($child){
+          $childContent = makeHTML($child);
+          $where = makeHTML(SIGMA.$childContent);
+        }
+      }
+      else if($key == "GROUP"){
+        // $group = groupToString($val);
+        $child = "(".groupToString($val).")";
+        $group = makeHTML($child,0);
+      }
+
     }
     $result = $group. $select . $where . $from;
   }
   return $result;
 }
+////
+
+
+
+
 
 $parser = new PHPSQLParser($sql);
 
@@ -360,8 +402,4 @@ $result = sqlToString($raw);
 
 echo $result;
 echo "\n";
-
-
-
-
 ?>
