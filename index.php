@@ -23,9 +23,9 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 // FROM TaiSan WHERE MaTaiSan= 'Con Heo'))
 // AND ((TAI_SAN.MaTaiSan=PHAN_PHOI.MaTaiSan) AND (PH.MaPhong=PHAN_PHOI.MaPhong))";
 
-// $sql = "SELECT sv.* from SV, Lop
-// WHERE sv.malop = lop.malop
-// AND tenlop LIKE 'Lop 10A1'";
+$sql = "SELECT sv.* from SV, Lop
+WHERE sv.malop = lop.malop
+AND tenlop LIKE 'Lop 10A1'";
 
 // $sql = "SELECT sv.*
 // FROM SV INNER JOIN LOP ON SV.MALOP = LOP.MALOP
@@ -37,10 +37,10 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 
 // $sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
 
-$sql = "SELECT COUNT(KETQUA.MAMH)
-FROM MONHOC, KETQUA
-WHERE MONHOC.MAMH = KETQUA.MAMH
-GROUP BY MONHOC.MAMH";
+// $sql = "SELECT COUNT(KETQUA.MAMH)
+// FROM MONHOC, KETQUA
+// WHERE MONHOC.MAMH = KETQUA.MAMH
+// GROUP BY MONHOC.MAMH";
 
 // $sql = "SELECT * FROM MONHOC
 // WHERE MAMH IN (SELECT MAMH FROM KETQUA)";
@@ -121,9 +121,8 @@ function getCofref($part){
   return end($parent);
 }
 
-function sameCofref($input){
+//input: raw[WHERE]
 
-}
 
 function isTable($part){
   return isPartHasType($part, "table");
@@ -164,6 +163,24 @@ function lastIndex($input){
   return count($input)-1;
 }
 
+function isSameCofref($input){
+  if(!isColRef($input['0']) || !isColRef($input['2']))
+    return false;
+
+  foreach ($input as $key => $value) {
+    if(isColRef($value)){
+      $ref[$key] = getCofref($value);
+      // echo $ref[$key]."\n";
+    }
+    if(isOperator($value)){
+      $op = getOp($value);
+      // echo $op;
+    }
+  }
+  // print_r($ref);
+  return ($ref['0'] == $ref['2']) && $op == "=";
+}
+
 //input raw[SELECT]
 function selectToString($input){
   if(isSelectAll($input)) return "";
@@ -195,7 +212,7 @@ function fromToString($input){
 
 // input: raw[WHERE], must to use recur
 function whereToString($input){
-  $pilot;
+  if(isSameCofref($input)) return;
   foreach ($input as $key => $value) {
     if(isBracketExpr($value)){
       //sub_tree
@@ -305,8 +322,10 @@ function sqlToString($raw){
         $select = makeSelectSymbol($val).selectToString($val);
       else if($key == "FROM")
         $from = "(".fromToString($val).")";
-      else if($key == "WHERE")
-        $where = SIGMA.whereToString($val);
+      else if($key == "WHERE"){
+        $where = whereToString($val);
+        if($where) $where = SIGMA.$where;
+      }
       else if($key == "GROUP")
         $group = groupToString($val);
     }
@@ -336,8 +355,8 @@ $raw = $parser->parsed;
 // echo "where: ". $where ."\n";
 
 
-print_r($raw);
-// $result = sqlToString($raw);
+// print_r($raw);
+$result = sqlToString($raw);
 
 echo $result;
 echo "\n";
