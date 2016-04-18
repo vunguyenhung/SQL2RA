@@ -35,7 +35,7 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 
 // $sql = "SELECT max(Diem), min(Diem), avg(Diem) FROM KETQUATHI WHERE MAMH='CSDL'";
 
-$sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
+// $sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
 
 // $sql = "SELECT COUNT(KETQUA.MAMH)
 // FROM MONHOC, KETQUA
@@ -45,8 +45,8 @@ $sql = "SELECT MAX(DIEM), MIN(DIEM), AVG(DIEM) FROM KQT GROUP BY MAMH, MASV";
 // $sql = "SELECT * FROM MONHOC
 // WHERE MAMH IN (SELECT MAMH FROM KETQUA)";
 //
-// $sql = "SELECT MAHV FROM KETQUATHI, SV
-// WHERE (COUNT(MAHV) = (SELECT COUNT(MAMH) FROM MONHOC)) AND (SV.MAHV = KETQUATHI.MAHV) OR (MAHV = (SELECT MAHV FROM SV WHERE MAHV = '123'))";
+$sql = "select mahv from ketquathi, sv
+where (count(mahv) = (select count(mamh) from monhoc)) and (sv.mahv = ketquathi.mahv) or (mahv = (select mahv from sv where mahv = '123'))";
 
 // $sql = "SELECT mahv, masv FROM SINHVIEN,LOP WHERE MALOP='10A1'";
 // $sql = "SELECT count(mahv), max(masv) FROM SINHVIEN,LOP WHERE MALOP='10A1'";
@@ -58,7 +58,7 @@ define("PI", "&pi;"); // π
 
 define("SIGMA", "&sigma;"); // σ
 
-define("TAU", "&tau;"); // τ
+define("TAU", "&image;"); // τ
 
 define("AND_OP", "&and;"); // ∧
 
@@ -74,6 +74,8 @@ define("RIGHT_JOIN", "&#10198;"); // ⟖
 define('FONT_SMALL', 'class="small">');
 
 define('FONT_SMALLER', 'class="smaller">');
+
+define('FONT_NONE', '>');
 
 define('SPAN_START', '<span ');
 
@@ -328,9 +330,10 @@ function aggrFuncToString($part, $isLast){
 //////
 //$size == 0: FONT_SMALLER
 //$size == 1: FONT_SMALL
-function makeHTML($content,$size = 1){
-  if($size == 1) $fontSize = FONT_SMALL;
-  else $fontSize = FONT_SMALLER;
+function makeHTML($content,$size = 2){
+  if($size == 2) $fontSize = FONT_SMALL;
+  else if($size == 1) $fontSize = FONT_SMALLER;
+  else $fontSize = FONT_NONE;
   return SPAN_START . $fontSize . $content . SPAN_END;
 }
 
@@ -343,7 +346,7 @@ function sqlToString($raw){
         $child = selectToString($val);
         $childContent = makeHTML($child);
         $symbol = makeSelectSymbol($val);
-        $select = makeHTML($symbol.$childContent);
+        $select = makeHTML($symbol.$childContent,0);
       }
       else if($key == "FROM"){
         // $from = "(".fromToString($val).")";
@@ -356,13 +359,14 @@ function sqlToString($raw){
         $child = whereToString($val);
         if($child){
           $childContent = makeHTML($child);
-          $where = makeHTML(SIGMA.$childContent);
+          $where = makeHTML(SIGMA.$childContent,0);
         }
       }
       else if($key == "GROUP"){
         // $group = groupToString($val);
         $child = "(".groupToString($val).")";
-        $group = makeHTML($child,0);
+        $childContent = makeHTML($child);
+        $group = makeHTML($childContent);
       }
 
     }
@@ -372,17 +376,11 @@ function sqlToString($raw){
 }
 ////
 
-
-
-
-
-$parser = new PHPSQLParser($sql);
-
 // echo "Input: ".$sql."\n";
 // showResult($parser->parsed);
 // print_r($parser->parsed);
 
-$raw = $parser->parsed;
+
 
 
 // $select = selectToString($raw['SELECT']);
@@ -396,10 +394,71 @@ $raw = $parser->parsed;
 // echo "from: ". $from ."\n";
 // echo "where: ". $where ."\n";
 
+///////
+// $parser = new PHPSQLParser($sql);
+// $raw = $parser->parsed;
 
 // print_r($raw);
-$result = sqlToString($raw);
+// $result = sqlToString($raw);
 
-echo $result;
-echo "\n";
+// echo $result;
+// echo "\n";
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>SQL2RA</title>
+    <!-- link(rel="stylesheet", href="http://fonts.googleapis.com/icon?family=Material+Icons")-->
+    <link rel="stylesheet" href="assets/components/materialize/css/materialize.min.css">
+    <link rel="stylesheet" href="assets/components/font-awesome-4.5.0/css/font-awesome.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <main class="container">
+      <div class="row">
+        <div class="col s8 offset-s2">
+          <div class="row">
+            <div class="col s12">
+              <h3 class="center-align">SQL To Relational Algebra</h3>
+            </div>
+          </div>
+          <div class="row">
+            <form class="col s12" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+              <div class="row">
+                <div class="input-field col s12">
+                  <i class="material-icons prefix">code</i>
+                  <textarea id="sql-statement" name="sql-statement" class="materialize-textarea"></textarea>
+                  <label for="sql-statement">SQL Statement</label>
+                </div>
+              </div>
+              <div class="input-field">
+                <button type="submit" class="btn-large waves-effect waves-light" style="width:100%;"><i class="material-icons">repeat</i></button>
+              </div>
+            </form>
+          </div>
+          <div class="result-container">
+          <?php
+            $parser = new PHPSQLParser($sql);
+            $raw = $parser->parsed;
+            $result = sqlToString($raw);
+            echo $result;
+            echo "\n";
+          ?>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="page-footer">
+      <p class="center-align red-text text-lighten-5">Coded with <i class="fa fa-heart"></i> by Hung</p>
+    </footer>
+    <!-- script(type="application/javascript", src= compDir + "jquery-2.2.1.min.js")-->
+    <script type="application/javascript" src="assets/components/jquery-2.1.4.min.js"></script>
+    <script type="application/javascript" src="assets/components/materialize/js/materialize.min.js"></script>
+    <script type="application/javascript" src="assets/components/jquery.validate.min.js"></script>
+    <script type="application/javascript" src="assets/components/additional-methods.min.js"></script>
+    <script type="application/javascript" src="assets/js/main.js"></script>
+  </body>
+</html>
