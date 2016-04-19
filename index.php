@@ -174,7 +174,7 @@ function isOperator($part)
 function getOp($part)
 {
     $string = getValue($part);
-    $except = array('=', '!=', 'LIKE', 'NOT', 'IN');
+    $except = array('=', '!=', 'LIKE', 'like', 'NOT', 'IN', 'in', 'not', '>', '<', '<=', '>=');
     if (in_array($string, $except)) {
         return $string;
     } elseif ($string == 'AND') {
@@ -478,7 +478,7 @@ if (isset($_POST['submit'])) {
               <div class="row">
                 <div class="input-field col s12">
                   <i class="material-icons prefix">code</i>
-                  <textarea id="sql-statement" name="sql-statement" class="materialize-textarea"></textarea>
+                  <textarea id="sql-statement" name="sql-statement" class="materialize-textarea" value="<?php echo $sql;?>"></textarea>
                   <label for="sql-statement">SQL Statement</label>
                 </div>
               </div>
@@ -487,20 +487,36 @@ if (isset($_POST['submit'])) {
               </div>
             </form>
           </div>
-          <div class="result-container">
+
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="input-container">
           <?php
-            // $parser = new PHPSQLParser($sql);
-            // $raw = $parser->parsed;
-            // $result = sqlToString($raw);
-            // echo $sql ."\n";
-            if (isset($_POST['submit'])) {
-                echo $result;
-                echo "\n";
+            if (isset($_POST['submit'])){
+              echo "<h2>Input: </h2>";
+              echo $sql;
             }
           ?>
-          </div>
         </div>
       </div>
+
+      <div class="row">
+        <div class="result-container">
+        <?php
+          // $parser = new PHPSQLParser($sql);
+          // $raw = $parser->parsed;
+          // $result = sqlToString($raw);
+          // echo $sql ."\n";
+          if (isset($_POST['submit'])) {
+              echo "<h2>Result:</h2>";
+              echo $result;
+          }
+        ?>
+        </div>
+      </div>
+
     </main>
     <footer class="page-footer">
       <p class="center-align red-text text-lighten-5">Coded with <i class="fa fa-heart"></i> by Hung</p>
