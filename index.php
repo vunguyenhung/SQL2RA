@@ -7,7 +7,8 @@
  */
 
 namespace PHPSQLParser;
-require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
+
+require_once dirname(__FILE__).'/src/PHPSQLParser/PHPSQLParser.php';
 
 ///////// TESTCASE
 
@@ -18,7 +19,7 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 // WHERE nhanvien.maphong = phong.maphong';
 
 // $sql = "SELECT MaTaiSan AS MA, TenTaiSan AS TAI_SAN, DonVi AS PHAN_PHOI, Gia AS GIA
-// FROM CONGTY WHERE (MaTaiSan IN
+// FROM CONGTY,TAI_SAN,PHAN_PHOI WHERE (MaTaiSan IN
 // (SELECT MaTaiSan
 // FROM TaiSan WHERE MaTaiSan= 'Con Heo'))
 // AND ((TAI_SAN.MaTaiSan=PHAN_PHOI.MaTaiSan) AND (PH.MaPhong=PHAN_PHOI.MaPhong))";
@@ -44,9 +45,9 @@ require_once dirname(__FILE__) . '/src/PHPSQLParser/PHPSQLParser.php';
 
 // $sql = "SELECT * FROM MONHOC
 // WHERE MAMH IN (SELECT MAMH FROM KETQUA)";
-//
-$sql = "select mahv from ketquathi, sv
-where (count(mahv) = (select count(mamh) from monhoc)) and (sv.mahv = ketquathi.mahv) or (mahv = (select mahv from sv where mahv = '123'))";
+
+// $sql = "select mahv from ketquathi, sv
+// where (count(mahv) = (select count(mamh) from monhoc)) and (sv.mahv = ketquathi.mahv) or (mahv = (select mahv from sv where mahv = '123'))";
 
 // $sql = "SELECT mahv, masv FROM SINHVIEN,LOP WHERE MALOP='10A1'";
 // $sql = "SELECT count(mahv), max(masv) FROM SINHVIEN,LOP WHERE MALOP='10A1'";
@@ -54,21 +55,21 @@ where (count(mahv) = (select count(mamh) from monhoc)) and (sv.mahv = ketquathi.
 
 //////////////// END TESTCASE
 
-define("PI", "&pi;"); // π
+define('PI', '&pi;'); // π
 
-define("SIGMA", "&sigma;"); // σ
+define('SIGMA', '&sigma;'); // σ
 
-define("TAU", "&image;"); // τ
+define('TAU', '&image;'); // τ
 
-define("AND_OP", "&and;"); // ∧
+define('AND_OP', '&and;'); // ∧
 
-define("OR_OP", "&or;"); // ∨
+define('OR_OP', '&or;'); // ∨
 
-define("JOIN", "&#10781;"); //⨝
+define('JOIN', '&#10781;'); //⨝
 
-define("LEFT_JOIN", "&#10197;"); // ⟕
+define('LEFT_JOIN', '&#10197;'); // ⟕
 
-define("RIGHT_JOIN", "&#10198;"); // ⟖
+define('RIGHT_JOIN', '&#10198;'); // ⟖
 
 // CSS-HTML CONTENT
 define('FONT_SMALL', 'class="small">');
@@ -83,296 +84,340 @@ define('SPAN_END', '</span>');
 
 //usage: SPAN_START . FONT_SMALL/FONT_SMALLER . CONTENT . SPAN_END;
 
-function showResult($s){
-  print_r($s);
+function showResult($s)
+{
+    print_r($s);
 }
 
-function isValidInput($raw){
-  return is_array($raw) || is_object($raw);
+function isValidInput($raw)
+{
+    return is_array($raw) || is_object($raw);
 }
 
-function test($raw, $result, $count){
-  if(isValidInput($raw))
-
-    foreach ($raw as $key => $val) {
-      echo $key . "\t val: ". $val ."\t recurrence count: ". $count. "\n";
-      convert($val, $result, $count + 1);
+function test($raw, $result, $count)
+{
+    if (isValidInput($raw)) {
+        foreach ($raw as $key => $val) {
+            echo $key."\t val: ".$val."\t recurrence count: ".$count."\n";
+            convert($val, $result, $count + 1);
+        }
     }
   // return;
 }
 
-function getExprType($input){
-  return $input['expr_type'];
+function getExprType($input)
+{
+    return $input['expr_type'];
 }
 
-function getBaseExpr($part){
-  return $part['base_expr'];
+function getBaseExpr($part)
+{
+    return $part['base_expr'];
 }
 
-function getValue($part){
-  return getBaseExpr($part);
+function getValue($part)
+{
+    return getBaseExpr($part);
 }
 
-function isPartHasType($part, $type){
-  return getExprType($part) == $type;
+function isPartHasType($part, $type)
+{
+    return getExprType($part) == $type;
 }
-
 
 ///////
-function isAggregateFunc($part){
-  return isPartHasType($part, "aggregate_function");
+function isAggregateFunc($part)
+{
+    return isPartHasType($part, 'aggregate_function');
 }
 
-function isColRef($part){
-  return isPartHasType($part, "colref");
+function isColRef($part)
+{
+    return isPartHasType($part, 'colref');
 }
-
 
 //input: $part = WHERE[0]
-function getCofref($part){
-  $parent = $part['no_quotes']['parts'];
-  return end($parent);
+function getCofref($part)
+{
+    $parent = $part['no_quotes']['parts'];
+
+    return end($parent);
 }
 
 //input: raw[WHERE]
 
-
-function isTable($part){
-  return isPartHasType($part, "table");
+function isTable($part)
+{
+    return isPartHasType($part, 'table');
 }
 
-function hasJoinType($table,$string){
-  return $table['join_type'] == $string;
+function hasJoinType($table, $string)
+{
+    return $table['join_type'] == $string;
 }
 
-function isBracketExpr($part){
-  return isPartHasType($part, "bracket_expression");
+function isBracketExpr($part)
+{
+    return isPartHasType($part, 'bracket_expression');
 }
 
-function isSubQuery($part){
-  return isPartHasType($part, "subquery");
+function isSubQuery($part)
+{
+    return isPartHasType($part, 'subquery');
 }
 
-function isOperator($part){
-  return isPartHasType($part, "operator");
+function isOperator($part)
+{
+    return isPartHasType($part, 'operator');
 }
 
-function getOp($part){
-  $string = getValue($part);
-  $except = array("=", "!=", "LIKE", "NOT", "IN");
-  if(in_array($string, $except)) return $string;
-  else if($string == "AND")
-    return AND_OP;
-  else return OR_OP;
-
+function getOp($part)
+{
+    $string = getValue($part);
+    $except = array('=', '!=', 'LIKE', 'NOT', 'IN');
+    if (in_array($string, $except)) {
+        return $string;
+    } elseif ($string == 'AND') {
+        return AND_OP;
+    } else {
+        return OR_OP;
+    }
 }
 
 //input: raw[0] => Table
-function getTableName($part){
-  return $part['table'];
+function getTableName($part)
+{
+    return $part['table'];
 }
 
-function lastIndex($input){
-  return count($input)-1;
+function lastIndex($input)
+{
+    return count($input) - 1;
 }
 
-function isSameCofref($input){
-  if(!isColRef($input['0']) || !isColRef($input['2']))
-    return false;
+function isSameCofref($input)
+{
+    if (!isColRef($input['0']) || !isColRef($input['2'])) {
+        return false;
+    }
 
-  foreach ($input as $key => $value) {
-    if(isColRef($value)){
-      $ref[$key] = getCofref($value);
+    foreach ($input as $key => $value) {
+        if (isColRef($value)) {
+            $ref[$key] = getCofref($value);
       // echo $ref[$key]."\n";
-    }
-    if(isOperator($value)){
-      $op = getOp($value);
+        }
+        if (isOperator($value)) {
+            $op = getOp($value);
       // echo $op;
+        }
     }
-  }
   // print_r($ref);
-  return ($ref['0'] == $ref['2']) && $op == "=";
+  return ($ref['0'] == $ref['2']) && $op == '=';
 }
 
 //input raw[SELECT]
-function selectToString($input){
-  if(isSelectAll($input)) return "";
+function selectToString($input)
+{
+    if (isSelectAll($input)) {
+        return '';
+    }
 
-  $i = -1;
-  foreach ($input as $part) {
-    $i++;
-    $result .= refToString($part,lastIndex($input) == $i);
-  }
-  return "(".$result.")";
+    $i = -1;
+    foreach ($input as $part) {
+        ++$i;
+        $result .= refToString($part, lastIndex($input) == $i);
+    }
+
+    return '('.$result.')';
 }
 
 //input raw[FROM]
-function fromToString($input){
-  $i = -1;
-  foreach ($input as $part ) {
-    $i++;
-    if($i > 0){
-      $joinType = makeJoinSymbol($part);
-      $tables .= $joinType;
+function fromToString($input)
+{
+    $i = -1;
+    foreach ($input as $part) {
+        ++$i;
+        if ($i > 0) {
+            $joinType = makeJoinSymbol($part);
+            $tables .= $joinType;
+        }
+        if (isTable($part)) {
+            $tables .= getTableName($part);
+        }
     }
-    if(isTable($part)){
-      $tables .= getTableName($part);
-    }
-  }
-  $result = $tables;
-  return $result;
+    $result = $tables;
+
+    return $result;
 }
 
 // input: raw[WHERE], must to use recur
-function whereToString($input){
-  // if(isSameCofref($input)) return;
+function whereToString($input)
+{
+    // if(isSameCofref($input)) return;
   foreach ($input as $key => $value) {
-    if(isBracketExpr($value)){
-      //sub_tree
-      $pilot[$key] = whereToString($value['sub_tree']);
-    }
-    else if(isSubQuery($value)){
-      $pilot[$key] = sqlToString($value['sub_tree']);
-    }
-    else if(isOperator($value)){
-      $pilot[$key] = " ".getOp($value)." ";
-      //Convert OP HERE
-    }
-    else{
-      $pilot[$key] = refToString($value,true);
-    }
-
+      if (isBracketExpr($value)) {
+          $pilot[$key] = whereToString($value['sub_tree']);
+      } elseif (isSubQuery($value)) {
+          $pilot[$key] = sqlToString($value['sub_tree']);
+      } elseif (isOperator($value)) {
+          $pilot[$key] = ' '.getOp($value).' ';
+      } else {
+          $pilot[$key] = refToString($value, true);
+      }
   }
 
-  foreach ($pilot as $value) {
-    $result .= $value;
-  }
-  return "(".$result.")";
+    foreach ($pilot as $value) {
+        $result .= $value;
+    }
+
+    return '('.$result.')';
 }
 
 // input: raw[SELECT]
-function makeSelectSymbol($input){
-  $result;
+function makeSelectSymbol($input)
+{
+    $result;
   // print(isSelectAll($input));
-  if(isSelectAll($input))
-    return "";
-  else if(isSelectAggregateFunc($input))
-    $result = TAU;
-  else
-    $result = PI;
+  if (isSelectAll($input)) {
+      return '';
+  } elseif (isSelectAggregateFunc($input)) {
+      $result = TAU;
+  } else {
+      $result = PI;
+  }
   //add CSS class to minimize select item here ?
   return $result;
 }
 
-function makeJoinSymbol($part){
-  if(hasJoinType($part,"RIGHT"))
-    return RIGHT_JOIN;
-  else if(hasJoinType($part,"LEFT"))
-    return LEFT_JOIN;
-  else return JOIN;
+function makeJoinSymbol($part)
+{
+    if (hasJoinType($part, 'RIGHT')) {
+        return RIGHT_JOIN;
+    } elseif (hasJoinType($part, 'LEFT')) {
+        return LEFT_JOIN;
+    } else {
+        return JOIN;
+    }
 }
 
-function groupToString($input){
-  $i = -1;
-  foreach ($input as $part) {
-    $i++;
-    $result .= refToString($part,lastIndex($input) == $i);
-  }
-  return $result;
-}
+function groupToString($input)
+{
+    $i = -1;
+    foreach ($input as $part) {
+        ++$i;
+        $result .= refToString($part, lastIndex($input) == $i);
+    }
 
+    return $result;
+}
 
 // input: raw[SELECT]
-function isSelectAll($part){
-  return isColRef($part['0']) && getBaseExpr($part['0']) == "*";
+function isSelectAll($part)
+{
+    return isColRef($part['0']) && getBaseExpr($part['0']) == '*';
 }
 
-function isSelectAggregateFunc($part){
-  return isAggregateFunc($part[0]);
+function isSelectAggregateFunc($part)
+{
+    return isAggregateFunc($part[0]);
 }
 
-function refToString($part, $isLast){
-  if(isColRef($part))
-    return colrefToString($part,$isLast);
-  else if(isAggregateFunc($part))
-    return aggrFuncToString($part,$isLast);
-  else
-    return getBaseExpr($part);
+function refToString($part, $isLast)
+{
+    if (isColRef($part)) {
+        return colrefToString($part, $isLast);
+    } elseif (isAggregateFunc($part)) {
+        return aggrFuncToString($part, $isLast);
+    } else {
+        return getBaseExpr($part);
+    }
 }
 
-function colrefToString($part, $isLast){
-  $result = getBaseExpr($part);
-  if(!$isLast) $result .= ", ";
-  return $result;
+function colrefToString($part, $isLast)
+{
+    $result = getBaseExpr($part);
+    if (!$isLast) {
+        $result .= ', ';
+    }
+
+    return $result;
 }
 // input: $part[expr_type] = aggregate_function;
-function aggrFuncToString($part, $isLast){
+function aggrFuncToString($part, $isLast)
+{
+    if (array_key_exists('sub_tree', $part)) {
+        $paramList = $part['sub_tree'];
+    }
 
-  if(array_key_exists('sub_tree', $part))
-    $paramList = $part['sub_tree'];
+    $i = -1;
+    foreach ($paramList as $paramArr) {
+        ++$i;
+        $param .= getBaseExpr($paramArr);
+        if (!(lastIndex($paramList) == $i)) {
+            $param .= ', ';
+        }
+    }
+    $func = getBaseExpr($part).'('.$param.')';
 
-  $i = -1;
-  foreach ($paramList as $paramArr) {
-    $i++;
-    $param .= getBaseExpr($paramArr);
-    if(!(lastIndex($paramList) == $i))
-      $param .= ", ";
-  }
-  $func = getBaseExpr($part)."(".$param.")";
+    $result = $func;
+    if (!$isLast) {
+        $result .= ', ';
+    }
 
-  $result = $func;
-  if(!$isLast)
-    $result .= ", ";
-
-  return $result;
+    return $result;
 }
 
 //////
-//$size == 0: FONT_SMALLER
-//$size == 1: FONT_SMALL
-function makeHTML($content,$size = 2){
-  if($size == 2) $fontSize = FONT_SMALL;
-  else if($size == 1) $fontSize = FONT_SMALLER;
-  else $fontSize = FONT_NONE;
-  return SPAN_START . $fontSize . $content . SPAN_END;
+//$size == 0: FONT_NONE
+//$size == 1: FONT_SMALLER
+//$size == 2: FONT_SMALL
+function makeHTML($content, $size = 2)
+{
+    if ($size == 2) {
+        $fontSize = FONT_SMALL;
+    } elseif ($size == 1) {
+        $fontSize = FONT_SMALLER;
+    } else {
+        $fontSize = FONT_NONE;
+    }
+
+    return SPAN_START.$fontSize.$content.SPAN_END;
+}
+
+$resultCount;
+$resultList;
+function addResult($string, $resultList)
+{
 }
 
 ///////
-function sqlToString($raw){
-  if(isValidInput($raw)){
-    foreach ($raw as $key => $val) {
-      if($key == "SELECT"){
-        // $select = makeSelectSymbol($val).selectToString($val);
-        $child = selectToString($val);
-        $childContent = makeHTML($child);
-        $symbol = makeSelectSymbol($val);
-        $select = makeHTML($symbol.$childContent,0);
-      }
-      else if($key == "FROM"){
-        // $from = "(".fromToString($val).")";
-        $child = "(".fromToString($val).")";
-        $from = makeHTML($child,0);
-      }
-      else if($key == "WHERE"){
-        // $where = whereToString($val);
-        // if($where) $where = SIGMA.$where;
-        $child = whereToString($val);
-        if($child){
-          $childContent = makeHTML($child);
-          $where = makeHTML(SIGMA.$childContent,0);
+function sqlToString($raw)
+{
+    if (isValidInput($raw)) {
+        foreach ($raw as $key => $val) {
+            if ($key == 'SELECT') {
+                $child = selectToString($val);
+                $childContent = makeHTML($child);
+                $symbol = makeSelectSymbol($val);
+                $select = makeHTML($symbol.$childContent, 0);
+            } elseif ($key == 'FROM') {
+                $child = '('.fromToString($val).')';
+                $from = makeHTML($child, 0);
+            } elseif ($key == 'WHERE') {
+                $child = whereToString($val);
+                if ($child) {
+                    $childContent = makeHTML($child);
+                    $where = makeHTML(SIGMA.$childContent, 0);
+                }
+            } elseif ($key == 'GROUP') {
+                $child = '('.groupToString($val).')';
+                $group = makeHTML($child);
+            }
         }
-      }
-      else if($key == "GROUP"){
-        // $group = groupToString($val);
-        $child = "(".groupToString($val).")";
-        $childContent = makeHTML($child);
-        $group = makeHTML($childContent);
-      }
-
+        $result = $group.$select.$where.$from;
     }
-    $result = $group. $select . $where . $from;
-  }
-  return $result;
+
+    return $result;
 }
 ////
 
@@ -380,15 +425,11 @@ function sqlToString($raw){
 // showResult($parser->parsed);
 // print_r($parser->parsed);
 
-
-
-
 // $select = selectToString($raw['SELECT']);
 // $from = fromToString($raw['FROM']);
 // $where = whereTostring($raw['WHERE']);
 
 // test($raw,$result, 0);
-
 
 // echo "select: ". $select . "\n";
 // echo "from: ". $from ."\n";
@@ -403,6 +444,13 @@ function sqlToString($raw){
 
 // echo $result;
 // echo "\n";
+
+if (isset($_POST['submit'])) {
+    $sql = $_POST['sql-statement'];
+    $parser = new PHPSQLParser($sql);
+    $raw = $parser->parsed;
+    $result = sqlToString($raw);
+}
 ?>
 
 <!DOCTYPE html>
@@ -435,17 +483,20 @@ function sqlToString($raw){
                 </div>
               </div>
               <div class="input-field">
-                <button type="submit" class="btn-large waves-effect waves-light" style="width:100%;"><i class="material-icons">repeat</i></button>
+                <button type="submit" name="submit" class="btn-large waves-effect waves-light" style="width:100%;"><i class="material-icons">repeat</i></button>
               </div>
             </form>
           </div>
           <div class="result-container">
           <?php
-            $parser = new PHPSQLParser($sql);
-            $raw = $parser->parsed;
-            $result = sqlToString($raw);
-            echo $result;
-            echo "\n";
+            // $parser = new PHPSQLParser($sql);
+            // $raw = $parser->parsed;
+            // $result = sqlToString($raw);
+            // echo $sql ."\n";
+            if (isset($_POST['submit'])) {
+                echo $result;
+                echo "\n";
+            }
           ?>
           </div>
         </div>
